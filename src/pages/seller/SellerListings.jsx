@@ -6,7 +6,7 @@ import { Plus } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { differenceInDays } from 'date-fns';
 
-const fadeUp = { hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0, transition: { duration: 0.4 } } };
+const fadeUp = { hidden: { opacity: 0, y: 18 }, visible: { opacity: 1, y: 0, transition: { duration: 0.4, ease: [0.22, 1, 0.36, 1] } } };
 const stColors = { ACTIVE: 'lime', BUYER_INTERESTED: 'info', PRICE_PROPOSED: 'amber', AGREED: 'lime', LOCKED: 'lime', ESCROW_LOCKED: 'lime', QAR_PENDING: 'amber', COMPLETED: 'lime', SETTLED: 'lime', BLOCKED: 'danger' };
 
 export default function SellerListings() {

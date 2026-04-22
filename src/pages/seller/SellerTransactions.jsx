@@ -6,7 +6,7 @@ import StatusBadge from '../../components/ui/StatusBadge';
 import { transactions, KANBAN_COLUMNS } from '../../mock/transactions';
 import { X } from 'lucide-react';
 
-const fadeUp = { hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0, transition: { duration: 0.4 } } };
+const fadeUp = { hidden: { opacity: 0, y: 18 }, visible: { opacity: 1, y: 0, transition: { duration: 0.4, ease: [0.22, 1, 0.36, 1] } } };
 
 export default function SellerTransactions() {
   const [selectedTxn, setSelectedTxn] = useState(null);

@@ -3,7 +3,7 @@ import StatusBadge from '../../components/ui/StatusBadge';
 import { complianceDocs } from '../../mock/inspections';
 import { FileText, Download, Leaf, Shield, AlertTriangle } from 'lucide-react';
 
-const fadeUp = { hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0, transition: { duration: 0.4 } } };
+const fadeUp = { hidden: { opacity: 0, y: 18 }, visible: { opacity: 1, y: 0, transition: { duration: 0.4, ease: [0.22, 1, 0.36, 1] } } };
 
 const typeIcons = { 'EPR Certificate': FileText, 'Carbon Credit': Leaf, 'Scope 3 Record': Shield, 'DPP': FileText, 'Hazardous Manifest': AlertTriangle };
 const typeColors = { 'EPR Certificate': '#B8F53C', 'Carbon Credit': '#38BDF8', 'Scope 3 Record': '#F59E0B', 'DPP': '#B8F53C', 'Hazardous Manifest': '#EF4444' };

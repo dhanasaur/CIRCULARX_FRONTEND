@@ -42,9 +42,12 @@ export default function LoginPage() {
         flex: '0 0 48%', position: 'relative', overflow: 'hidden',
         background: 'var(--color-brand-forest)',
       }}>
-        <img
-          src="/login-hero.png"
-          alt="Circular economy visualization"
+        <video
+          src="/login-hero.mp4"
+          autoPlay
+          muted
+          loop
+          playsInline
           style={{
             position: 'absolute', inset: 0,
             width: '100%', height: '100%',

@@ -65,7 +65,7 @@ export default function DashboardLayout({ role }) {
   const sidebarBg = 'rgba(255,255,255,0.02)';
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh', background: bgColor, color: '#fff' }}>
+    <div className="dashboard-bg" style={{ display: 'flex', minHeight: '100vh', color: '#fff' }}>
       {/* Mobile overlay */}
       {mobileOpen && <div onClick={() => setMobileOpen(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 40 }} />}
 
@@ -94,8 +94,8 @@ export default function DashboardLayout({ role }) {
             return (
               <Link key={link.to} to={link.to} onClick={() => setMobileOpen(false)} className={`sidebar-link ${isActive ? 'active' : ''}`}
                 style={collapsed ? { justifyContent: 'center', padding: '12px' } : {}}>
-                <Icon size={18} />
-                {!collapsed && <span>{link.label}</span>}
+                <Icon size={18} style={{ flexShrink: 0 }} />
+                <span style={{ opacity: collapsed ? 0 : 1, transition: 'opacity 0.2s ease', width: collapsed ? 0 : 'auto', overflow: 'hidden' }}>{link.label}</span>
               </Link>
             );
           })}
@@ -103,18 +103,22 @@ export default function DashboardLayout({ role }) {
 
         {/* Bottom */}
         <div style={{ padding: '12px 8px', borderTop: '1px solid rgba(255,255,255,0.06)' }}>
-          <button onClick={() => setCollapsed(!collapsed)} className="sidebar-link" style={{ width: '100%', background: 'none', border: 'none', cursor: 'pointer', justifyContent: collapsed ? 'center' : 'flex-start' }}>
-            {collapsed ? <ChevronRight size={18} /> : <><ChevronLeft size={18} /><span>Collapse</span></>}
+          <button onClick={() => setCollapsed(!collapsed)} className="sidebar-link" style={{ width: '100%', background: 'none', border: 'none', cursor: 'pointer', justifyContent: collapsed ? 'center' : 'flex-start', padding: collapsed ? '12px' : '10px 16px' }}>
+            {collapsed ? <ChevronRight size={18} style={{ flexShrink: 0 }} /> : <ChevronLeft size={18} style={{ flexShrink: 0 }} />}
+            <span style={{ opacity: collapsed ? 0 : 1, transition: 'opacity 0.2s ease', width: collapsed ? 0 : 'auto', overflow: 'hidden' }}>Collapse</span>
           </button>
-          <button onClick={handleLogout} className="sidebar-link" style={{ width: '100%', background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(255,255,255,0.4)', justifyContent: collapsed ? 'center' : 'flex-start' }}>
-            <LogOut size={18} />
-            {!collapsed && <span>Sign Out</span>}
+          <button onClick={handleLogout} className="sidebar-link" style={{ width: '100%', background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(255,255,255,0.4)', justifyContent: collapsed ? 'center' : 'flex-start', padding: collapsed ? '12px' : '10px 16px' }}>
+            <LogOut size={18} style={{ flexShrink: 0 }} />
+            <span style={{ opacity: collapsed ? 0 : 1, transition: 'opacity 0.2s ease', width: collapsed ? 0 : 'auto', overflow: 'hidden' }}>Sign Out</span>
           </button>
         </div>
       </aside>
 
+      {/* Spacer for fixed sidebar */}
+      <div style={{ width: sidebarWidth, flexShrink: 0, transition: 'width 0.3s ease' }} className="sidebar-spacer" />
+
       {/* Main content */}
-      <div style={{ flex: 1, marginLeft: sidebarWidth, transition: 'margin-left 0.3s ease', display: 'flex', flexDirection: 'column' }} className="main-content-area">
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }} className="main-content-area">
         {/* Topbar */}
         <header style={{
           height: 56, display: 'flex', alignItems: 'center', justifyContent: 'space-between',
@@ -152,6 +156,7 @@ export default function DashboardLayout({ role }) {
         @media (max-width: 1024px) {
           .sidebar-container { transform: translateX(-100%); width: 240px !important; }
           .sidebar-container.mobile-open { transform: translateX(0) !important; }
+          .sidebar-spacer { display: none; }
           .main-content-area { margin-left: 0 !important; }
           .mobile-menu-btn { display: block !important; }
           .user-info-desktop { display: none; }

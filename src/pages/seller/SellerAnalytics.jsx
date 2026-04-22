@@ -2,7 +2,7 @@ import { motion } from 'framer-motion';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, ScatterChart, Scatter, AreaChart, Area } from 'recharts';
 import { TrendingUp, Recycle, MapPin, FileText } from 'lucide-react';
 
-const fadeUp = { hidden: { opacity: 0, y: 16 }, visible: { opacity: 1, y: 0 } };
+const fadeUp = { hidden: { opacity: 0, y: 18 }, visible: { opacity: 1, y: 0, transition: { duration: 0.4, ease: [0.22, 1, 0.36, 1] } } };
 const stagger = { visible: { transition: { staggerChildren: 0.06 } } };
 
 const categoryBreakdown = [
@@ -41,7 +41,7 @@ const complianceTimeline = [
 const CustomTooltip = ({ active, payload, label }) => {
   if (!active || !payload?.length) return null;
   return (
-    <div style={{ background: 'rgba(6,15,9,0.95)', border: '1px solid rgba(184,245,60,0.15)', borderRadius: 10, padding: '10px 14px', backdropFilter: 'blur(8px)' }}>
+    <div style={{ background: 'rgba(6,15,9,0.97)', border: '1px solid rgba(184,245,60,0.15)', borderRadius: 10, padding: '12px 16px', backdropFilter: 'blur(12px)', boxShadow: '0 8px 32px rgba(0,0,0,0.4)' }}>
       <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.4)', marginBottom: 4, fontFamily: 'var(--font-mono)' }}>{label || payload[0]?.payload?.name}</div>
       {payload.map((p, i) => (
         <div key={i} style={{ fontSize: 13, fontWeight: 600, color: p.color || '#fff', display: 'flex', gap: 8 }}>
@@ -56,16 +56,16 @@ export default function SellerAnalytics() {
   return (
     <motion.div initial="hidden" animate="visible" variants={stagger}>
       <motion.div variants={fadeUp} transition={{ duration: 0.4 }} style={{ marginBottom: 28 }}>
-        <h1 style={{ fontFamily: 'var(--font-display)', fontSize: 26, fontWeight: 800, color: '#fff', marginBottom: 6, letterSpacing: '-0.02em' }}>Analytics</h1>
-        <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.4)' }}>Comprehensive insights into your circular economy operations</p>
+        <h1 className="dash-h1" style={{ marginBottom: 6 }}>Analytics</h1>
+        <p className="dash-subtitle">Comprehensive insights into your circular economy operations</p>
       </motion.div>
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 16 }} className="analytics-grid">
         {/* Category Breakdown */}
-        <motion.div variants={fadeUp} transition={{ duration: 0.4 }} style={{ padding: 24, borderRadius: 14, background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)' }}>
+        <motion.div variants={fadeUp} transition={{ duration: 0.4 }} className="glass-card" style={{ padding: 24 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 20 }}>
             <Recycle size={16} style={{ color: '#B8F53C' }} />
-            <h3 style={{ fontSize: 14, fontWeight: 600, color: 'rgba(255,255,255,0.7)' }}>Waste Stream by Category</h3>
+            <h3 style={{ fontSize: 14, fontWeight: 700, color: '#fff', fontFamily: 'var(--font-display)' }}>Waste Stream by Category</h3>
           </div>
           <ResponsiveContainer width="100%" height={200}>
             <PieChart>
@@ -85,19 +85,19 @@ export default function SellerAnalytics() {
         </motion.div>
 
         {/* MQS Trend */}
-        <motion.div variants={fadeUp} transition={{ duration: 0.4 }} style={{ padding: 24, borderRadius: 14, background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)' }}>
+        <motion.div variants={fadeUp} transition={{ duration: 0.4 }} className="glass-card" style={{ padding: 24 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 20 }}>
             <TrendingUp size={16} style={{ color: '#38BDF8' }} />
-            <h3 style={{ fontSize: 14, fontWeight: 600, color: 'rgba(255,255,255,0.7)' }}>MQS Score Trend</h3>
+            <h3 style={{ fontSize: 14, fontWeight: 700, color: '#fff', fontFamily: 'var(--font-display)' }}>MQS Score Trend</h3>
           </div>
           <ResponsiveContainer width="100%" height={220}>
             <AreaChart data={mqsTrend}>
               <defs><linearGradient id="mqsGrad" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="#38BDF8" stopOpacity={0.2}/><stop offset="100%" stopColor="#38BDF8" stopOpacity={0}/></linearGradient></defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" />
-              <XAxis dataKey="month" tick={{ fill: 'rgba(255,255,255,0.3)', fontSize: 11 }} axisLine={false} tickLine={false} />
-              <YAxis domain={[60, 90]} tick={{ fill: 'rgba(255,255,255,0.3)', fontSize: 11, fontFamily: 'JetBrains Mono' }} axisLine={false} tickLine={false} />
+              <CartesianGrid strokeDasharray="2 4" stroke="rgba(255,255,255,0.04)" />
+              <XAxis dataKey="month" tick={{ fill: 'rgba(255,255,255,0.25)', fontSize: 11, fontFamily: 'var(--font-mono)' }} axisLine={false} tickLine={false} />
+              <YAxis domain={[60, 90]} tick={{ fill: 'rgba(255,255,255,0.25)', fontSize: 11, fontFamily: 'var(--font-mono)' }} axisLine={false} tickLine={false} />
               <Tooltip content={<CustomTooltip />} />
-              <Area type="monotone" dataKey="avg" stroke="#38BDF8" strokeWidth={2.5} fill="url(#mqsGrad)" dot={{ fill: '#38BDF8', r: 3, strokeWidth: 0 }} />
+              <Area type="monotone" dataKey="avg" stroke="#38BDF8" strokeWidth={2.5} fill="url(#mqsGrad)" dot={{ fill: '#38BDF8', r: 3, strokeWidth: 0 }} style={{ filter: 'drop-shadow(0 0 6px rgba(56,189,248,0.4))' }} />
             </AreaChart>
           </ResponsiveContainer>
         </motion.div>
@@ -105,48 +105,72 @@ export default function SellerAnalytics() {
 
       <div style={{ display: 'grid', gridTemplateColumns: '3fr 2fr', gap: 16, marginBottom: 16 }} className="analytics-grid">
         {/* Revenue vs Volume */}
-        <motion.div variants={fadeUp} transition={{ duration: 0.4 }} style={{ padding: 24, borderRadius: 14, background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)' }}>
-          <h3 style={{ fontSize: 14, fontWeight: 600, color: 'rgba(255,255,255,0.7)', marginBottom: 20 }}>Revenue vs Waste Volume</h3>
+        <motion.div variants={fadeUp} transition={{ duration: 0.4 }} className="glass-card" style={{ padding: 24 }}>
+          <h3 style={{ fontSize: 14, fontWeight: 700, color: '#fff', marginBottom: 20, fontFamily: 'var(--font-display)' }}>Revenue vs Waste Volume</h3>
           <ResponsiveContainer width="100%" height={220}>
             <ScatterChart>
-              <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" />
-              <XAxis dataKey="volume" name="Volume (t)" tick={{ fill: 'rgba(255,255,255,0.3)', fontSize: 11 }} axisLine={false} tickLine={false} />
-              <YAxis dataKey="revenue" name="Revenue ($)" tick={{ fill: 'rgba(255,255,255,0.3)', fontSize: 11, fontFamily: 'JetBrains Mono' }} axisLine={false} tickLine={false} tickFormatter={v => `$${(v/1000).toFixed(0)}k`} />
+              <CartesianGrid strokeDasharray="2 4" stroke="rgba(255,255,255,0.04)" />
+              <XAxis dataKey="volume" name="Volume (t)" tick={{ fill: 'rgba(255,255,255,0.25)', fontSize: 11, fontFamily: 'var(--font-mono)' }} axisLine={false} tickLine={false} />
+              <YAxis dataKey="revenue" name="Revenue ($)" tick={{ fill: 'rgba(255,255,255,0.25)', fontSize: 11, fontFamily: 'var(--font-mono)' }} axisLine={false} tickLine={false} tickFormatter={v => `$${(v/1000).toFixed(0)}k`} />
               <Tooltip content={<CustomTooltip />} />
               <Scatter data={revenueVsVolume} fill="#B8F53C" opacity={0.8} />
             </ScatterChart>
           </ResponsiveContainer>
         </motion.div>
 
-        {/* Buyer Heatmap */}
-        <motion.div variants={fadeUp} transition={{ duration: 0.4 }} style={{ padding: 24, borderRadius: 14, background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)' }}>
+        {/* Buyer Geography — Ranked Table */}
+        <motion.div variants={fadeUp} transition={{ duration: 0.4 }} className="glass-card" style={{ padding: 24 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}>
             <MapPin size={16} style={{ color: '#F59E0B' }} />
-            <h3 style={{ fontSize: 14, fontWeight: 600, color: 'rgba(255,255,255,0.7)' }}>Buyer Geographic Distribution</h3>
+            <h3 style={{ fontSize: 14, fontWeight: 700, color: '#fff', fontFamily: 'var(--font-display)' }}>Buyer Geography</h3>
           </div>
           {buyerGeo.map((city, i) => (
-            <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 0', borderBottom: i < buyerGeo.length - 1 ? '1px solid rgba(255,255,255,0.04)' : 'none' }}>
-              <span style={{ fontSize: 13, color: '#fff', fontWeight: 500, width: 90 }}>{city.city}</span>
+            <div key={i} style={{
+              display: 'flex', alignItems: 'center', gap: 12, padding: '10px 12px',
+              borderBottom: i < buyerGeo.length - 1 ? '1px solid rgba(255,255,255,0.04)' : 'none',
+              background: i % 2 === 0 ? 'rgba(255,255,255,0.01)' : 'transparent',
+              borderRadius: 6, transition: 'background 0.15s',
+            }}
+            onMouseEnter={e => e.currentTarget.style.background = 'rgba(184,245,60,0.025)'}
+            onMouseLeave={e => e.currentTarget.style.background = i % 2 === 0 ? 'rgba(255,255,255,0.01)' : 'transparent'}
+            >
+              <span style={{
+                width: 22, height: 22, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                background: 'rgba(184,245,60,0.1)', color: '#B8F53C', fontSize: 10, fontWeight: 800, fontFamily: 'var(--font-mono)', flexShrink: 0,
+              }}>{i + 1}</span>
+              <span style={{ fontSize: 13, color: '#fff', fontWeight: 600, width: 80 }}>{city.city}</span>
+              <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.4)', fontFamily: 'var(--font-mono)', width: 30, textAlign: 'center' }}>{city.count}</span>
               <div style={{ flex: 1, height: 6, borderRadius: 3, background: 'rgba(255,255,255,0.04)', overflow: 'hidden' }}>
                 <div style={{ height: '100%', width: `${(city.count / 12) * 100}%`, background: 'linear-gradient(90deg, #B8F53C, #38BDF8)', borderRadius: 3, transition: 'width 0.8s ease' }} />
               </div>
-              <span style={{ fontSize: 11, fontFamily: 'var(--font-mono)', color: '#B8F53C', width: 50, textAlign: 'right' }}>{city.value}</span>
+              <span style={{ fontSize: 11, fontFamily: 'var(--font-mono)', color: '#B8F53C', fontWeight: 700, width: 50, textAlign: 'right' }}>{city.value}</span>
             </div>
           ))}
+          {/* Total row */}
+          <div style={{
+            display: 'flex', alignItems: 'center', gap: 12, padding: '12px 12px 4px',
+            borderTop: '1px solid rgba(184,245,60,0.1)', marginTop: 4,
+          }}>
+            <span style={{ width: 22 }} />
+            <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.5)', fontWeight: 700, width: 80, fontFamily: 'var(--font-mono)' }}>TOTAL</span>
+            <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.5)', fontFamily: 'var(--font-mono)', width: 30, textAlign: 'center', fontWeight: 700 }}>{buyerGeo.reduce((a, c) => a + c.count, 0)}</span>
+            <div style={{ flex: 1 }} />
+            <span style={{ fontSize: 12, fontFamily: 'var(--font-mono)', color: '#B8F53C', fontWeight: 800, width: 50, textAlign: 'right' }}>$277K</span>
+          </div>
         </motion.div>
       </div>
 
       {/* Compliance Timeline */}
-      <motion.div variants={fadeUp} transition={{ duration: 0.4 }} style={{ padding: 24, borderRadius: 14, background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)' }}>
+      <motion.div variants={fadeUp} transition={{ duration: 0.4 }} className="glass-card" style={{ padding: 24 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 20 }}>
           <FileText size={16} style={{ color: '#F59E0B' }} />
-          <h3 style={{ fontSize: 14, fontWeight: 600, color: 'rgba(255,255,255,0.7)' }}>Compliance Documents Generated</h3>
+          <h3 style={{ fontSize: 14, fontWeight: 700, color: '#fff', fontFamily: 'var(--font-display)' }}>Compliance Documents Generated</h3>
         </div>
         <ResponsiveContainer width="100%" height={200}>
           <BarChart data={complianceTimeline}>
-            <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" />
-            <XAxis dataKey="month" tick={{ fill: 'rgba(255,255,255,0.3)', fontSize: 11 }} axisLine={false} tickLine={false} />
-            <YAxis tick={{ fill: 'rgba(255,255,255,0.3)', fontSize: 11 }} axisLine={false} tickLine={false} />
+            <CartesianGrid strokeDasharray="2 4" stroke="rgba(255,255,255,0.04)" />
+            <XAxis dataKey="month" tick={{ fill: 'rgba(255,255,255,0.25)', fontSize: 11, fontFamily: 'var(--font-mono)' }} axisLine={false} tickLine={false} />
+            <YAxis tick={{ fill: 'rgba(255,255,255,0.25)', fontSize: 11, fontFamily: 'var(--font-mono)' }} axisLine={false} tickLine={false} />
             <Tooltip content={<CustomTooltip />} />
             <Bar dataKey="epr" stackId="a" fill="#B8F53C" radius={[0, 0, 0, 0]} name="EPR" />
             <Bar dataKey="carbon" stackId="a" fill="#38BDF8" name="Carbon Credit" />
@@ -155,7 +179,7 @@ export default function SellerAnalytics() {
         </ResponsiveContainer>
         <div style={{ display: 'flex', gap: 20, justifyContent: 'center', marginTop: 12 }}>
           {[{ label: 'EPR', color: '#B8F53C' }, { label: 'Carbon Credit', color: '#38BDF8' }, { label: 'DPP', color: '#F59E0B' }].map((l, i) => (
-            <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, color: 'rgba(255,255,255,0.5)' }}>
+            <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, color: 'rgba(255,255,255,0.5)', fontFamily: 'var(--font-mono)' }}>
               <span style={{ width: 10, height: 10, borderRadius: 2, background: l.color }} /> {l.label}
             </div>
           ))}

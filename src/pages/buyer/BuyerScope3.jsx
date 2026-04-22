@@ -45,7 +45,7 @@ export default function BuyerScope3() {
     <motion.div initial="hidden" animate="visible" variants={stagger}>
       <motion.div variants={fadeUp} transition={{ duration: 0.4 }} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 28, flexWrap: 'wrap', gap: 16 }}>
         <div>
-          <h1 style={{ fontFamily: 'var(--font-display)', fontSize: 26, fontWeight: 800, color: '#fff', marginBottom: 6, letterSpacing: '-0.02em' }}>Scope 3 GHG Tracker</h1>
+          <h1 className="dash-h1" style={{ marginBottom: 6 }}>Scope 3 GHG Tracker</h1>
           <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.4)' }}>Category 1 — Purchased Goods & Services · GHG Protocol Aligned</p>
         </div>
         <button style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '10px 20px', borderRadius: 10, background: 'rgba(56,189,248,0.08)', color: '#38BDF8', border: '1px solid rgba(56,189,248,0.2)', cursor: 'pointer', fontSize: 13, fontWeight: 600, fontFamily: 'var(--font-body)' }}>
@@ -85,7 +85,7 @@ export default function BuyerScope3() {
             </defs>
             <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" />
             <XAxis dataKey="month" tick={{ fill: 'rgba(255,255,255,0.3)', fontSize: 11 }} axisLine={false} tickLine={false} />
-            <YAxis tick={{ fill: 'rgba(255,255,255,0.3)', fontSize: 11, fontFamily: 'JetBrains Mono' }} axisLine={false} tickLine={false} />
+            <YAxis tick={{ fill: 'rgba(255,255,255,0.25)', fontSize: 11, fontFamily: 'var(--font-mono)' }} axisLine={false} tickLine={false} />
             <Tooltip content={<CustomTooltip />} />
             <Area type="monotone" dataKey="baseline" stroke="#64748B" strokeWidth={1.5} fill="url(#baseGrad)" dot={false} name="Baseline" />
             <Area type="monotone" dataKey="avoided" stroke="#38BDF8" strokeWidth={2.5} fill="url(#avoidGrad)" dot={{ fill: '#38BDF8', r: 3 }} name="Avoided" />

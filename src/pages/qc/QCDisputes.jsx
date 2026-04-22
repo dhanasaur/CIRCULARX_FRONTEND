@@ -29,7 +29,7 @@ export default function QCDisputes() {
       {toast && <div style={{ position: 'fixed', top: 24, right: 24, zIndex: 200, padding: '12px 20px', borderRadius: 10, background: '#B8F53C', color: '#0D2B1E', fontSize: 13, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 8, boxShadow: '0 8px 30px rgba(184,245,60,0.3)' }}><CheckCircle size={14} /> {toast}</div>}
 
       <motion.div variants={fadeUp} style={{ marginBottom: 24 }}>
-        <h1 style={{ fontFamily: 'var(--font-display)', fontSize: 26, fontWeight: 800, color: '#fff', marginBottom: 6 }}>Dispute Cases</h1>
+        <h1 className="dash-h1" style={{ marginBottom: 6 }}>Dispute Cases</h1>
         <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.4)' }}>{disputes.length} active · {resolvedHistory.length} resolved this quarter</p>
       </motion.div>
 

@@ -48,7 +48,7 @@ export default function BuyerRequests() {
 
       <motion.div variants={fadeUp} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 24, flexWrap: 'wrap', gap: 12 }}>
         <div>
-          <h1 style={{ fontFamily: 'var(--font-display)', fontSize: 26, fontWeight: 800, color: '#fff', marginBottom: 6 }}>My Requests</h1>
+          <h1 className="dash-h1" style={{ marginBottom: 6 }}>My Requests</h1>
           <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.4)' }}>{requests.length} procurement requests · {requests.filter(r => r.status === 'OPEN').length} open</p>
         </div>
         <button onClick={() => setShowModal(true)} style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '10px 22px', borderRadius: 10, background: '#B8F53C', color: '#0D2B1E', fontSize: 13, fontWeight: 700, border: 'none', cursor: 'pointer', fontFamily: 'var(--font-body)', boxShadow: '0 0 20px rgba(184,245,60,0.2)' }}><Plus size={14} /> New Request</button>

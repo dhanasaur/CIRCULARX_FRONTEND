@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import { User, Bell, Shield, SlidersHorizontal, Save, Check, X } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 
-const fadeUp = { hidden: { opacity: 0, y: 16 }, visible: { opacity: 1, y: 0 } };
+const fadeUp = { hidden: { opacity: 0, y: 18 }, visible: { opacity: 1, y: 0, transition: { duration: 0.4, ease: [0.22, 1, 0.36, 1] } } };
 
 const tabs = [
   { key: 'profile', label: 'Profile', icon: User },
@@ -34,7 +34,7 @@ export default function SettingsPage({ role }) {
 
   return (
     <motion.div initial="hidden" animate="visible" variants={{ visible: { transition: { staggerChildren: 0.06 } } }}>
-      <motion.h1 variants={fadeUp} style={{ fontFamily: 'var(--font-display)', fontSize: 26, fontWeight: 800, color: '#fff', marginBottom: 24, letterSpacing: '-0.02em' }}>Settings</motion.h1>
+      <motion.h1 variants={fadeUp} className="dash-h1" style={{ marginBottom: 24 }}>Settings</motion.h1>
 
       {toast && <div style={{ position: 'fixed', top: 24, right: 24, zIndex: 200, padding: '12px 20px', borderRadius: 10, background: '#B8F53C', color: '#0D2B1E', fontSize: 13, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 8, boxShadow: '0 8px 30px rgba(184,245,60,0.3)' }}><Check size={14} /> {toast}</div>}
 
@@ -49,7 +49,7 @@ export default function SettingsPage({ role }) {
         </div>
 
         {/* Content */}
-        <div style={{ flex: 1, padding: 28, borderRadius: 14, background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)' }}>
+        <div className="glass-card" style={{ flex: 1, padding: 28 }}>
           {tab === 'profile' && (
             <div>
               <h2 style={{ fontSize: 16, fontFamily: 'var(--font-display)', color: '#fff', marginBottom: 24 }}>Profile Information</h2>
