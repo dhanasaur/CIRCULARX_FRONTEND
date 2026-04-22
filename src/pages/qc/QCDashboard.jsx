@@ -1,15 +1,16 @@
 import { useState } from 'react';
 import KPICard from '../../components/ui/KPICard';
-import StatusBadge from '../../components/ui/StatusBadge';
 import MQSRing from '../../components/ui/MQSRing';
+import StatusBadge from '../../components/ui/StatusBadge';
 import { motion } from 'framer-motion';
-import { ClipboardCheck, Calendar, CheckCircle, AlertTriangle, Clock, MapPin, ArrowRight, FileWarning, Activity, BarChart3 } from 'lucide-react';
+import { ClipboardCheck, Calendar, CheckCircle, AlertTriangle, Clock, MapPin, ArrowRight, FileWarning, Activity, BarChart3, ShieldAlert } from 'lucide-react';
 import { inspections, qarReports, disputes } from '../../mock/inspections';
 import { Link } from 'react-router-dom';
 import { LineChart, Line, AreaChart, Area, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import './QCDashboard.css';
 
-const fadeUp = { hidden: { opacity: 0, y: 16 }, visible: { opacity: 1, y: 0 } };
-const stagger = { visible: { transition: { staggerChildren: 0.06 } } };
+const fadeUp = { hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0 } };
+const stagger = { visible: { transition: { staggerChildren: 0.1 } } };
 
 const statusColors = { PENDING: 'amber', SCHEDULED: 'info', APPROVED: 'lime', DISCREPANCY: 'danger' };
 const priorityColors = { LOW: 'slate', MEDIUM: 'info', HIGH: 'amber', CRITICAL: 'danger' };
@@ -23,7 +24,7 @@ const completionData = [
 ];
 
 const outcomeData = [
-  { name: 'Approved', value: 68, color: '#B8F53C' },
+  { name: 'Approved', value: 68, color: '#00e68a' },
   { name: 'Conditional', value: 15, color: '#F59E0B' },
   { name: 'Rejected', value: 12, color: '#EF4444' },
   { name: 'Pending', value: 5, color: '#64748B' },
@@ -32,16 +33,16 @@ const outcomeData = [
 const calendarSlots = [
   { day: 'Tue', time: '10:00', material: 'SS Turnings', location: 'Pune', priority: 'HIGH' },
   { day: 'Thu', time: '14:00', material: 'Nylon 6 Regrind', location: 'Vadodara', priority: 'MEDIUM' },
-  { day: 'Fri', time: '09:00', material: 'Al Ingots (Secondary)', location: 'Ahmedabad', priority: 'MEDIUM' },
+  { day: 'Fri', time: '09:00', material: 'Al Ingots', location: 'Ahmedabad', priority: 'MEDIUM' },
 ];
 
 const CustomTooltip = ({ active, payload, label }) => {
   if (!active || !payload?.length) return null;
   return (
-    <div style={{ background: 'rgba(6,15,9,0.95)', border: '1px solid rgba(245,158,11,0.15)', borderRadius: 10, padding: '10px 14px', backdropFilter: 'blur(8px)' }}>
-      <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.4)', marginBottom: 4, fontFamily: 'var(--font-mono)' }}>{label}</div>
+    <div style={{ background: 'rgba(6,15,9,0.95)', border: '1px solid rgba(0,212,255,0.25)', borderRadius: 12, padding: '12px 16px', backdropFilter: 'blur(12px)', boxShadow: '0 8px 32px rgba(0,0,0,0.4)' }}>
+      <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.5)', marginBottom: 6, fontFamily: 'var(--font-mono)' }}>{label}</div>
       {payload.map((p, i) => (
-        <div key={i} style={{ fontSize: 13, fontWeight: 600, color: p.color || '#fff' }}>{p.name}: {p.value}</div>
+        <div key={i} style={{ fontSize: 14, fontWeight: 700, color: p.color || '#fff' }}>{p.name}: {p.value}</div>
       ))}
     </div>
   );
@@ -49,233 +50,202 @@ const CustomTooltip = ({ active, payload, label }) => {
 
 export default function QCDashboard() {
   const pending = inspections.filter(i => ['PENDING', 'SCHEDULED'].includes(i.status)).length;
-  const approved = inspections.filter(i => i.status === 'APPROVED').length;
-  const discrepancies = inspections.filter(i => i.status === 'DISCREPANCY').length;
   const sortedInspections = [...inspections].sort((a, b) => (priorityOrder[a.priority] ?? 99) - (priorityOrder[b.priority] ?? 99));
 
   return (
-    <motion.div initial="hidden" animate="visible" variants={stagger}>
-      {/* Header */}
-      <motion.div variants={fadeUp} transition={{ duration: 0.4 }} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 28, flexWrap: 'wrap', gap: 16 }}>
-        <div>
-          <h1 style={{ fontFamily: 'var(--font-display)', fontSize: 26, fontWeight: 800, color: '#fff', marginBottom: 6, letterSpacing: '-0.02em' }}>
-            Good evening, Vikram
-          </h1>
-          <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.4)', display: 'flex', alignItems: 'center', gap: 8 }}>
-            <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#F59E0B', display: 'inline-block', animation: 'pulse 2s ease-in-out infinite' }} />
-            QC Inspector · QC-INS-0042 · South India Region
-          </p>
+    <motion.div className="qcc" initial="hidden" animate="visible" variants={stagger}>
+
+      {/* ── Hero Banner ── */}
+      <motion.div variants={fadeUp} className="qcc-hero">
+        <div className="qcc-hero-left">
+          <div className="qcc-hero-left-top">
+            <span className="qcc-hero-badge">QC Authority Portal</span>
+            <span className="qcc-hero-sub">Inspector: QC-INS-0042</span>
+          </div>
+          <h1 className="qcc-hero-title">Good evening, Vikram</h1>
         </div>
-        <Link to="/qc/inspections" style={{
-          display: 'inline-flex', alignItems: 'center', gap: 8, padding: '10px 22px',
-          borderRadius: 10, background: '#B8F53C', color: 'var(--color-brand-dark)',
-          fontSize: 13, fontWeight: 700, textDecoration: 'none', fontFamily: 'var(--font-body)',
-          boxShadow: '0 0 20px rgba(184,245,60,0.2)',
-        }}>
-          <ClipboardCheck size={14} /> View Queue
+        <Link to="/qc/inspections" className="qcc-hero-cta">
+          <ShieldAlert size={16} /> Enter Inspection Queue
         </Link>
       </motion.div>
 
-      {/* KPI Row */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(185px, 1fr))', gap: 14, marginBottom: 28 }}>
+      {/* ── KPI Grid ── */}
+      <div className="qcc-kpi-grid">
         <KPICard title="Pending Inspections" value={pending} icon={ClipboardCheck} color="amber" delay={0} />
-        <KPICard title="Scheduled This Week" value={3} icon={Calendar} color="blue" delay={1} />
-        <KPICard title="Approval Rate" value={83} suffix="%" icon={CheckCircle} trend={2} trendLabel="vs last wk" color="lime" delay={2} />
-        <KPICard title="Active Disputes" value={discrepancies} icon={AlertTriangle} color="rose" delay={3} />
-        <KPICard title="Avg Turnaround" value={18} suffix=" hrs" icon={Clock} trend={-5} trendLabel="faster" color="blue" delay={4} />
-        <KPICard title="QARs Submitted" value={25} icon={BarChart3} trend={12} color="lime" delay={5} />
+        <KPICard title="Approval Rate" value={83} suffix="%" icon={CheckCircle} trend={2} trendLabel="vs last wk" color="lime" delay={1} />
+        <KPICard title="Active Disputes" value={disputes.length} icon={AlertTriangle} color="rose" delay={2} />
+        <KPICard title="Avg Turnaround" value={18} suffix=" hrs" icon={Clock} trend={-5} trendLabel="faster" color="blue" delay={3} />
+        <KPICard title="QARs Submitted" value={25} icon={BarChart3} trend={12} color="lime" delay={4} />
       </div>
 
-      {/* Charts Row */}
-      <div style={{ display: 'grid', gridTemplateColumns: '3fr 2fr', gap: 16, marginBottom: 28 }} className="qc-grid-2">
+      {/* ── Analytics Row ── */}
+      <div className="qcc-analytics-row">
         {/* QAR Completion Trend */}
-        <motion.div variants={fadeUp} transition={{ duration: 0.4 }} style={{ padding: 24, borderRadius: 14, background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+        <motion.div variants={fadeUp} className="qcc-chart-card">
+          <div className="qcc-chart-head">
             <div>
-              <h3 style={{ fontSize: 14, fontWeight: 600, color: 'rgba(255,255,255,0.7)', marginBottom: 2 }}>QAR Completion Rate</h3>
-              <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.3)', fontFamily: 'var(--font-mono)' }}>Last 7 days · {completionData.reduce((s, d) => s + d.completed, 0)} completed</span>
+              <h3 className="qcc-chart-title">QAR Assessment Trajectory</h3>
+              <span className="qcc-chart-sub">Last 7 days performance metrics</span>
             </div>
-            <div style={{ display: 'flex', gap: 12 }}>
-              {[{ label: 'Completed', color: '#B8F53C' }, { label: 'Pending', color: '#F59E0B' }].map((l, i) => (
-                <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 10, color: 'rgba(255,255,255,0.4)' }}>
-                  <span style={{ width: 8, height: 3, borderRadius: 2, background: l.color }} /> {l.label}
+            <div className="qcc-legend">
+              {[{ label: 'Completed', color: '#00e68a' }, { label: 'Pending', color: '#F59E0B' }].map((l, i) => (
+                <div key={i} className="qcc-legend-item">
+                  <span className="qcc-legend-dot" style={{ background: l.color }} /> {l.label}
                 </div>
               ))}
             </div>
           </div>
-          <ResponsiveContainer width="100%" height={180}>
-            <AreaChart data={completionData}>
+          <ResponsiveContainer width="100%" height={220}>
+            <AreaChart data={completionData} margin={{ top: 10, right: 0, left: -20, bottom: 0 }}>
               <defs>
                 <linearGradient id="qcCompGrad" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#B8F53C" stopOpacity={0.2} />
-                  <stop offset="100%" stopColor="#B8F53C" stopOpacity={0} />
+                  <stop offset="0%" stopColor="#00e68a" stopOpacity={0.25} />
+                  <stop offset="100%" stopColor="#00e68a" stopOpacity={0} />
                 </linearGradient>
               </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" />
-              <XAxis dataKey="day" tick={{ fill: 'rgba(255,255,255,0.3)', fontSize: 11, fontFamily: 'DM Sans' }} axisLine={false} tickLine={false} />
-              <YAxis tick={{ fill: 'rgba(255,255,255,0.3)', fontSize: 11, fontFamily: 'JetBrains Mono' }} axisLine={false} tickLine={false} />
-              <Tooltip content={<CustomTooltip />} />
-              <Area type="monotone" dataKey="completed" stroke="#B8F53C" strokeWidth={2.5} fill="url(#qcCompGrad)" dot={{ fill: '#B8F53C', r: 3, strokeWidth: 0 }} activeDot={{ fill: '#B8F53C', r: 5, stroke: '#fff', strokeWidth: 2 }} name="Completed" />
-              <Line type="monotone" dataKey="pending" stroke="#F59E0B" strokeWidth={1.5} strokeDasharray="4 4" dot={{ fill: '#F59E0B', r: 2.5 }} name="Pending" />
+              <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.03)" vertical={false} />
+              <XAxis dataKey="day" tick={{ fill: 'rgba(255,255,255,0.3)', fontSize: 12 }} axisLine={false} tickLine={false} dy={10} />
+              <YAxis tick={{ fill: 'rgba(255,255,255,0.3)', fontSize: 12, fontFamily: 'var(--font-mono)' }} axisLine={false} tickLine={false} />
+              <Tooltip content={<CustomTooltip />} cursor={{ stroke: 'rgba(255,255,255,0.1)', strokeWidth: 1, strokeDasharray: '4 4' }} />
+              <Area type="monotone" dataKey="completed" stroke="#00e68a" strokeWidth={3} fill="url(#qcCompGrad)" activeDot={{ r: 6, fill: '#00e68a', stroke: '#060F09', strokeWidth: 3 }} name="Completed" />
+              <Line type="monotone" dataKey="pending" stroke="#F59E0B" strokeWidth={2} strokeDasharray="6 6" dot={{ fill: '#F59E0B', r: 4, strokeWidth: 0 }} name="Pending" />
             </AreaChart>
           </ResponsiveContainer>
         </motion.div>
 
         {/* Inspection Outcomes Donut */}
-        <motion.div variants={fadeUp} transition={{ duration: 0.4 }} style={{ padding: 24, borderRadius: 14, background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)' }}>
-          <h3 style={{ fontSize: 14, fontWeight: 600, color: 'rgba(255,255,255,0.7)', marginBottom: 16 }}>Inspection Outcomes</h3>
-          <ResponsiveContainer width="100%" height={160}>
-            <PieChart>
-              <Pie data={outcomeData} cx="50%" cy="50%" innerRadius={45} outerRadius={72} paddingAngle={4} dataKey="value" stroke="none">
-                {outcomeData.map((entry, i) => <Cell key={i} fill={entry.color} />)}
-              </Pie>
-              <Tooltip contentStyle={{ background: 'rgba(6,15,9,0.95)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 8, fontSize: 12, color: '#fff' }} />
-            </PieChart>
-          </ResponsiveContainer>
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10, justifyContent: 'center', marginTop: 8 }}>
+        <motion.div variants={fadeUp} className="qcc-donut-card">
+          <h3 className="qcc-donut-title">Global Quality Outcomes</h3>
+          <div className="qcc-donut-wrap">
+            <ResponsiveContainer width="100%" height={180}>
+              <PieChart>
+                <Pie data={outcomeData} cx="50%" cy="50%" innerRadius={50} outerRadius={80} paddingAngle={4} dataKey="value" stroke="none">
+                  {outcomeData.map((entry, i) => <Cell key={i} fill={entry.color} />)}
+                </Pie>
+                <Tooltip contentStyle={{ background: 'rgba(6,15,9,0.95)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 8, fontSize: 13, color: '#fff', boxShadow: '0 8px 32px rgba(0,0,0,0.4)' }} itemStyle={{ color: '#fff' }} />
+              </PieChart>
+            </ResponsiveContainer>
+            <div className="qcc-donut-center">
+              <div style={{ textAlign: 'center' }}>
+                <div className="qcc-donut-pct">83%</div>
+                <div className="qcc-donut-pct-label">Pass Rate</div>
+              </div>
+            </div>
+          </div>
+          <div className="qcc-donut-legend">
             {outcomeData.map((c, i) => (
-              <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 11, color: 'rgba(255,255,255,0.5)' }}>
-                <span style={{ width: 8, height: 8, borderRadius: 2, background: c.color }} /> {c.name} <span style={{ fontFamily: 'var(--font-mono)', color: c.color }}>{c.value}%</span>
+              <div key={i} className="qcc-donut-legend-item">
+                <div className="qcc-donut-legend-label">
+                  <span className="qcc-donut-legend-dot" style={{ background: c.color }} /> {c.name}
+                </div>
+                <span className="qcc-donut-legend-val" style={{ color: c.color }}>{c.value}%</span>
               </div>
             ))}
           </div>
         </motion.div>
       </div>
 
-      {/* Bottom Grid: Queue + Side Panels */}
-      <div style={{ display: 'grid', gridTemplateColumns: '5fr 3fr', gap: 16 }} className="qc-grid-2">
-        {/* Inspection Queue Preview */}
-        <motion.div variants={fadeUp} transition={{ duration: 0.4 }} style={{ padding: 24, borderRadius: 14, background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)' }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 18 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <div style={{ width: 28, height: 28, borderRadius: 7, background: 'rgba(245,158,11,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <ClipboardCheck size={14} style={{ color: '#F59E0B' }} />
+      {/* ── Priority Operations Matrix ── */}
+      <div className="qcc-matrix-row">
+        {/* Inspection Queue */}
+        <motion.div variants={fadeUp} className="qcc-queue-card">
+          <div className="qcc-queue-head">
+            <div className="qcc-queue-head-left">
+              <div className="qcc-queue-icon">
+                <ClipboardCheck size={18} style={{ color: '#F59E0B' }} />
               </div>
-              <h3 style={{ fontSize: 14, fontWeight: 600, color: 'rgba(255,255,255,0.7)' }}>Priority Queue</h3>
-              <span style={{ fontSize: 10, padding: '2px 8px', borderRadius: 10, background: 'rgba(245,158,11,0.1)', color: '#F59E0B', fontFamily: 'var(--font-mono)', fontWeight: 600 }}>{pending} pending</span>
+              <div>
+                <h3 className="qcc-queue-title">Priority Inspection Queue</h3>
+                <span className="qcc-queue-sub">Critical timeline operations</span>
+              </div>
             </div>
-            <Link to="/qc/inspections" style={{ fontSize: 11, color: '#B8F53C', fontWeight: 600, textDecoration: 'none' }}>View All →</Link>
+            <Link to="/qc/inspections" className="qcc-queue-link">Access Full Queue →</Link>
           </div>
 
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+          <div className="qcc-inspection-list">
             {sortedInspections.slice(0, 4).map((ins) => (
-              <div key={ins.id} style={{
-                padding: 16, borderRadius: 12,
-                background: ins.priority === 'CRITICAL' ? 'rgba(239,68,68,0.04)' : 'rgba(255,255,255,0.015)',
-                border: `1px solid ${ins.priority === 'CRITICAL' ? 'rgba(239,68,68,0.15)' : 'rgba(255,255,255,0.05)'}`,
-                cursor: 'pointer', transition: 'all 0.2s',
-              }}
-                onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(184,245,60,0.15)'; e.currentTarget.style.boxShadow = '0 0 15px rgba(184,245,60,0.05)'; }}
-                onMouseLeave={e => { e.currentTarget.style.borderColor = ins.priority === 'CRITICAL' ? 'rgba(239,68,68,0.15)' : 'rgba(255,255,255,0.05)'; e.currentTarget.style.boxShadow = ''; }}
+              <div
+                key={ins.id}
+                className="qcc-insp-card"
+                style={{
+                  background: ins.priority === 'CRITICAL' ? 'rgba(239,68,68,0.05)' : 'rgba(255,255,255,0.02)',
+                  borderColor: ins.priority === 'CRITICAL' ? 'rgba(239,68,68,0.2)' : 'rgba(255,255,255,0.05)',
+                }}
+                onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(0,230,138,0.3)'; }}
+                onMouseLeave={e => { e.currentTarget.style.borderColor = ins.priority === 'CRITICAL' ? 'rgba(239,68,68,0.2)' : 'rgba(255,255,255,0.05)'; }}
               >
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 8 }}>
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
-                      <span style={{ fontSize: 14, fontWeight: 600, color: '#fff' }}>{ins.materialName}</span>
+                <div className="qcc-insp-card-top">
+                  <div className="qcc-insp-card-left">
+                    <div className="qcc-insp-name-row">
+                      <span className="qcc-insp-name">{ins.materialName}</span>
                       <StatusBadge status={ins.priority} color={priorityColors[ins.priority]} size="xs" />
                     </div>
-                    <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.35)', display: 'flex', gap: 12 }}>
-                      <span style={{ fontFamily: 'var(--font-mono)' }}>{ins.transactionId}</span>
-                      <span style={{ display: 'flex', alignItems: 'center', gap: 3 }}><MapPin size={10} /> {ins.location}</span>
+                    <div className="qcc-insp-meta">
+                      <span className="qcc-insp-id">{ins.transactionId}</span>
+                      <span className="qcc-insp-loc"><MapPin size={12} /> {ins.location}</span>
                     </div>
                   </div>
-                  <MQSRing score={ins.mqsScore} size={36} strokeWidth={3} />
+                  <MQSRing score={ins.mqsScore} size={44} strokeWidth={4} />
                 </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <div style={{ display: 'flex', gap: 8 }}>
-                    <StatusBadge status={ins.status} color={statusColors[ins.status]} size="xs" />
-                    <StatusBadge status={ins.escrowStatus} color={ins.escrowStatus === 'RELEASED' ? 'lime' : ins.escrowStatus === 'HELD' ? 'danger' : 'amber'} size="xs" />
+                <div className="qcc-insp-foot">
+                  <div className="qcc-insp-badges">
+                    <StatusBadge status={ins.status} color={statusColors[ins.status]} size="sm" />
+                    <StatusBadge status={ins.escrowStatus} color={ins.escrowStatus === 'RELEASED' ? 'lime' : ins.escrowStatus === 'HELD' ? 'danger' : 'amber'} size="sm" />
                   </div>
-                  <span style={{ fontSize: 11, fontFamily: 'var(--font-mono)', color: 'rgba(255,255,255,0.3)' }}>
-                    Due: {new Date(ins.dueDate).toLocaleDateString()}
-                  </span>
+                  <span className="qcc-insp-due">Due: {new Date(ins.dueDate).toLocaleDateString()}</span>
                 </div>
               </div>
             ))}
           </div>
         </motion.div>
 
-        {/* Right Side */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-          {/* Weekly Schedule */}
-          <motion.div variants={fadeUp} transition={{ duration: 0.4 }} style={{ padding: 20, borderRadius: 14, background: 'rgba(56,189,248,0.03)', border: '1px solid rgba(56,189,248,0.1)' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14 }}>
-              <Calendar size={14} style={{ color: '#38BDF8' }} />
-              <h4 style={{ fontSize: 13, fontWeight: 600, color: 'rgba(255,255,255,0.6)', margin: 0 }}>This Week</h4>
-              <span style={{ fontSize: 10, padding: '2px 8px', borderRadius: 10, background: 'rgba(56,189,248,0.1)', color: '#38BDF8', fontFamily: 'var(--font-mono)', fontWeight: 600 }}>{calendarSlots.length} scheduled</span>
+        {/* Schedule & Disputes Panel */}
+        <div className="qcc-side-col">
+          {/* On-Site Schedule */}
+          <motion.div variants={fadeUp} className="qcc-schedule-card">
+            <div className="qcc-schedule-head">
+              <Calendar size={18} style={{ color: '#00d4ff' }} />
+              <h4 className="qcc-schedule-title">On-Site Schedule</h4>
             </div>
-            {calendarSlots.map((slot, i) => (
-              <div key={i} style={{
-                display: 'flex', alignItems: 'center', gap: 10, padding: '12px', marginBottom: 6, borderRadius: 10,
-                background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.04)', transition: 'all 0.15s',
-              }}
-                onMouseEnter={e => e.currentTarget.style.borderColor = 'rgba(56,189,248,0.15)'}
-                onMouseLeave={e => e.currentTarget.style.borderColor = 'rgba(255,255,255,0.04)'}
-              >
-                <div style={{ width: 36, height: 36, borderRadius: 8, background: 'rgba(56,189,248,0.06)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                  <span style={{ fontSize: 10, fontFamily: 'var(--font-mono)', color: '#38BDF8', fontWeight: 700, lineHeight: 1 }}>{slot.day}</span>
-                  <span style={{ fontSize: 8, fontFamily: 'var(--font-mono)', color: 'rgba(255,255,255,0.3)', lineHeight: 1, marginTop: 1 }}>{slot.time}</span>
+            <div className="qcc-schedule-list">
+              {calendarSlots.map((slot, i) => (
+                <div key={i} className="qcc-slot">
+                  <div className="qcc-slot-icon">
+                    <span className="qcc-slot-day">{slot.day}</span>
+                    <span className="qcc-slot-time">{slot.time}</span>
+                  </div>
+                  <div className="qcc-slot-info">
+                    <div className="qcc-slot-mat">{slot.material}</div>
+                    <div className="qcc-slot-loc"><MapPin size={10} /> {slot.location}</div>
+                  </div>
                 </div>
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontSize: 13, color: '#fff', fontWeight: 500 }}>{slot.material}</div>
-                  <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.3)', display: 'flex', alignItems: 'center', gap: 3 }}><MapPin size={8} /> {slot.location}</div>
-                </div>
-                <StatusBadge status={slot.priority} color={priorityColors[slot.priority]} size="xs" />
-              </div>
-            ))}
+              ))}
+            </div>
           </motion.div>
 
-          {/* Active Disputes */}
-          <motion.div variants={fadeUp} transition={{ duration: 0.4 }} style={{ padding: 20, borderRadius: 14, background: 'rgba(239,68,68,0.03)', border: '1px solid rgba(239,68,68,0.1)' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14 }}>
-              <FileWarning size={14} style={{ color: '#EF4444' }} />
-              <h4 style={{ fontSize: 13, fontWeight: 600, color: '#FB7185', margin: 0 }}>Active Disputes</h4>
+          {/* Active Mediations */}
+          <motion.div variants={fadeUp} className="qcc-dispute-card">
+            <div className="qcc-dispute-head">
+              <FileWarning size={18} style={{ color: '#EF4444' }} />
+              <h4 className="qcc-dispute-title">Active Mediations</h4>
             </div>
             {disputes.map(d => (
-              <div key={d.id} style={{ padding: 14, borderRadius: 10, background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.04)', marginBottom: 8 }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
-                  <span style={{ fontSize: 12, fontFamily: 'var(--font-mono)', color: '#FB7185', fontWeight: 600 }}>{d.id}</span>
-                  <span style={{ fontSize: 10, padding: '2px 8px', borderRadius: 4, background: 'rgba(239,68,68,0.1)', color: '#FB7185', fontFamily: 'var(--font-mono)', fontWeight: 600 }}>TIER {d.tier}</span>
+              <div key={d.id} className="qcc-dispute-item">
+                <div className="qcc-dispute-item-head">
+                  <span className="qcc-dispute-id">{d.id}</span>
+                  <span className="qcc-dispute-tier">TIER {d.tier}</span>
                 </div>
-                <div style={{ fontSize: 13, color: '#fff', fontWeight: 500, marginBottom: 4 }}>{d.materialName}</div>
-                <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.35)', lineHeight: 1.5, marginBottom: 6 }}>{d.description}</div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <span style={{ fontSize: 11, fontFamily: 'var(--font-mono)', color: 'rgba(255,255,255,0.25)' }}>Escrow: ${d.escrowAmount.toLocaleString()}</span>
-                  <span style={{ fontSize: 10, padding: '2px 8px', borderRadius: 4, background: 'rgba(245,158,11,0.08)', color: '#F59E0B', fontFamily: 'var(--font-mono)', fontWeight: 600 }}>{d.status}</span>
+                <div className="qcc-dispute-mat">{d.materialName}</div>
+                <div className="qcc-dispute-desc">{d.description}</div>
+                <div className="qcc-dispute-foot">
+                  <span className="qcc-dispute-risk">Risk: ${d.escrowAmount.toLocaleString()}</span>
+                  <Link to="/qc/disputes" className="qcc-dispute-link">Manage Case →</Link>
                 </div>
-              </div>
-            ))}
-            <Link to="/qc/disputes" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, marginTop: 8, fontSize: 12, color: '#FB7185', fontWeight: 600, textDecoration: 'none' }}>
-              View All Disputes <ArrowRight size={12} />
-            </Link>
-          </motion.div>
-
-          {/* Recent QARs */}
-          <motion.div variants={fadeUp} transition={{ duration: 0.4 }} style={{ padding: 20, borderRadius: 14, background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)' }}>
-            <h4 style={{ fontSize: 13, fontWeight: 600, color: 'rgba(255,255,255,0.5)', margin: '0 0 14px' }}>Recent QARs</h4>
-            {qarReports.slice(0, 3).map(qar => (
-              <div key={qar.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 0', borderBottom: '1px solid rgba(255,255,255,0.03)' }}>
-                <div style={{
-                  width: 28, height: 28, borderRadius: 7,
-                  background: qar.result === 'APPROVED' ? 'rgba(184,245,60,0.08)' : 'rgba(239,68,68,0.08)',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                }}>
-                  {qar.result === 'APPROVED' ? <CheckCircle size={13} style={{ color: '#B8F53C' }} /> : <AlertTriangle size={13} style={{ color: '#EF4444' }} />}
-                </div>
-                <div style={{ flex: 1 }}>
-                  <div style={{ fontSize: 13, color: '#fff', fontWeight: 500 }}>{qar.materialName}</div>
-                  <div style={{ fontSize: 10, fontFamily: 'var(--font-mono)', color: 'rgba(255,255,255,0.25)' }}>{qar.id}</div>
-                </div>
-                <span style={{ fontSize: 10, fontFamily: 'var(--font-mono)', color: qar.result === 'APPROVED' ? '#B8F53C' : '#EF4444', fontWeight: 600 }}>{qar.result}</span>
               </div>
             ))}
           </motion.div>
         </div>
       </div>
-
-      <style>{`
-        @media (max-width: 1024px) { .qc-grid-2 { grid-template-columns: 1fr !important; } }
-      `}</style>
     </motion.div>
   );
 }

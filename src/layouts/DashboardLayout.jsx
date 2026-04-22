@@ -61,8 +61,8 @@ export default function DashboardLayout({ role }) {
   };
 
   const sidebarWidth = collapsed ? 64 : 240;
-  const bgColor = role === 'qc' ? '#0F1B2D' : 'var(--color-brand-dark)';
-  const sidebarBg = role === 'qc' ? '#131F33' : 'rgba(255,255,255,0.02)';
+  const bgColor = 'var(--color-brand-dark)';
+  const sidebarBg = 'rgba(255,255,255,0.02)';
 
   return (
     <div style={{ display: 'flex', minHeight: '100vh', background: bgColor, color: '#fff' }}>

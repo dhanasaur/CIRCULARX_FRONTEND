@@ -1,240 +1,311 @@
-import { useState } from 'react';
-import KPICard from '../../components/ui/KPICard';
-import MaterialCard from '../../components/ui/MaterialCard';
-import MQSRing from '../../components/ui/MQSRing';
+import { useEffect, useRef, useState, useCallback } from 'react';
 import { motion } from 'framer-motion';
-import { ShoppingCart, Package, TrendingDown, Leaf, ClipboardCheck, ArrowRightLeft, Search, ArrowRight, Target, Sparkles } from 'lucide-react';
-import { listings } from '../../mock/listings';
-import { transactions } from '../../mock/transactions';
-import { Link } from 'react-router-dom';
-import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, AreaChart, Area, XAxis, YAxis, CartesianGrid } from 'recharts';
+import { LayoutGrid, Users, ChevronDown, TrendingUp, Percent, Clock, Package } from 'lucide-react';
+import './BuyerDashboard.css';
 
-const fadeUp = { hidden: { opacity: 0, y: 16 }, visible: { opacity: 1, y: 0 } };
-const stagger = { visible: { transition: { staggerChildren: 0.06 } } };
+const fadeUp = { hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0, transition: { duration: 0.45 } } };
+const stagger = { visible: { transition: { staggerChildren: 0.07 } } };
 
-const categoryData = [
-  { name: 'Plastics', value: 42, color: '#B8F53C' },
-  { name: 'Metals', value: 28, color: '#38BDF8' },
-  { name: 'Paper', value: 15, color: '#F59E0B' },
-  { name: 'Other', value: 15, color: '#64748B' },
-];
+/* ═══ Globe Canvas ═══ */
+function Globe({ w = 190, h = 190 }) {
+  const ref = useRef(null);
+  const raf = useRef(null);
+  const rot = useRef(0);
 
-const spendData = [
-  { month: 'Oct', spend: 18200 }, { month: 'Nov', spend: 22400 }, { month: 'Dec', spend: 19800 },
-  { month: 'Jan', spend: 31200 }, { month: 'Feb', spend: 28600 }, { month: 'Mar', spend: 35800 },
-];
+  const draw = useCallback(() => {
+    const c = ref.current; if (!c) return;
+    const ctx = c.getContext('2d');
+    const dpr = window.devicePixelRatio || 1;
+    c.width = w * dpr; c.height = h * dpr; ctx.scale(dpr, dpr);
+    const cx = w / 2, cy = h / 2, r = w * 0.36;
+    ctx.clearRect(0, 0, w, h);
+    rot.current += 0.003;
 
-const matchAlerts = [
-  { id: 1, material: 'HDPE Pellets (Reprocessed)', mqs: 88, price: '$38/t', seller: 'GreenTech Recyclers', fit: 94, location: 'Bengaluru, IN' },
-  { id: 2, material: 'ABS Regrind', mqs: 83, price: '$52/t', seller: 'NovaPoly Works', fit: 87, location: 'Noida, IN' },
-  { id: 3, material: 'Glass Cullet (Clear)', mqs: 82, price: '$18/t', seller: 'ClearVision Glass', fit: 79, location: 'Surat, IN' },
-];
+    // glow
+    const g = ctx.createRadialGradient(cx, cy, r * 0.5, cx, cy, r * 1.5);
+    g.addColorStop(0, 'rgba(0,230,138,0.07)'); g.addColorStop(0.6, 'rgba(0,200,255,0.03)'); g.addColorStop(1, 'transparent');
+    ctx.fillStyle = g; ctx.fillRect(0, 0, w, h);
 
-const CustomTooltip = ({ active, payload, label }) => {
-  if (!active || !payload?.length) return null;
+    // sphere
+    ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2);
+    ctx.strokeStyle = 'rgba(0,230,138,0.22)'; ctx.lineWidth = 1.5; ctx.stroke();
+    const sf = ctx.createRadialGradient(cx - r * 0.3, cy - r * 0.3, 0, cx, cy, r);
+    sf.addColorStop(0, 'rgba(0,230,138,0.05)'); sf.addColorStop(1, 'rgba(0,60,40,0.02)');
+    ctx.fillStyle = sf; ctx.fill();
+
+    // lat/lon
+    ctx.save(); ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2); ctx.clip();
+    for (let lat = -60; lat <= 60; lat += 30) {
+      const y = cy + r * Math.sin(lat * Math.PI / 180), lr = r * Math.cos(lat * Math.PI / 180);
+      ctx.beginPath(); ctx.ellipse(cx, y, lr, lr * 0.15, 0, 0, Math.PI * 2);
+      ctx.strokeStyle = 'rgba(0,230,138,0.1)'; ctx.lineWidth = 0.7; ctx.stroke();
+    }
+    for (let lon = 0; lon < 180; lon += 30) {
+      const a = lon * Math.PI / 180 + rot.current;
+      ctx.beginPath(); ctx.ellipse(cx, cy, r * Math.abs(Math.cos(a)), r, 0, 0, Math.PI * 2);
+      ctx.strokeStyle = 'rgba(0,230,138,0.08)'; ctx.lineWidth = 0.7; ctx.stroke();
+    }
+    ctx.restore();
+
+    // orbits
+    [0, 1].forEach(i => {
+      ctx.save(); ctx.translate(cx, cy); ctx.rotate(rot.current * (1.5 + i * 0.5) + i * 1.2);
+      ctx.beginPath(); ctx.ellipse(0, 0, r * (1.2 + i * 0.15), r * 0.18, 0.3 + i * 0.4, 0, Math.PI * 2);
+      ctx.strokeStyle = i === 0 ? 'rgba(0,212,255,0.28)' : 'rgba(0,230,138,0.18)';
+      ctx.lineWidth = 1.2; ctx.setLineDash([4, 6]); ctx.stroke(); ctx.setLineDash([]); ctx.restore();
+    });
+
+    // nodes
+    [{ la: 20, lo: 78 }, { la: 25, lo: 121 }, { la: 35, lo: -118 }, { la: 51, lo: 0 }, { la: -23, lo: -46 }, { la: 1, lo: 103 }]
+      .forEach(({ la, lo }) => {
+        const phi = (90 - la) * Math.PI / 180, th = (lo + rot.current * 50) * Math.PI / 180;
+        const x3 = Math.sin(phi) * Math.cos(th), z3 = Math.sin(phi) * Math.sin(th), y3 = Math.cos(phi);
+        if (z3 > -0.15) {
+          const px = cx + x3 * r * 0.85, py = cy - y3 * r * 0.85, al = Math.max(0.2, (z3 + 0.15) / 1.15);
+          const ng = ctx.createRadialGradient(px, py, 0, px, py, 7);
+          ng.addColorStop(0, `rgba(0,230,138,${al * 0.5})`); ng.addColorStop(1, 'transparent');
+          ctx.fillStyle = ng; ctx.fillRect(px - 7, py - 7, 14, 14);
+          ctx.beginPath(); ctx.arc(px, py, 2, 0, Math.PI * 2); ctx.fillStyle = `rgba(0,230,138,${al})`; ctx.fill();
+        }
+      });
+    raf.current = requestAnimationFrame(draw);
+  }, [w, h]);
+
+  useEffect(() => { draw(); return () => { if (raf.current) cancelAnimationFrame(raf.current); }; }, [draw]);
+  return <canvas ref={ref} style={{ width: w, height: h }} />;
+}
+
+/* ═══ MQS Ring ═══ */
+function Ring({ score, size = 64 }) {
+  const [val, setVal] = useState(0);
+  const el = useRef(null);
+  const sw = 5, rad = (size - sw) / 2, circ = 2 * Math.PI * rad, off = circ - (val / 100) * circ;
+
+  useEffect(() => {
+    const obs = new IntersectionObserver(([e]) => {
+      if (e.isIntersecting) {
+        const t0 = performance.now();
+        (function step(now) {
+          const p = Math.min((now - t0) / 1200, 1);
+          setVal(Math.floor((1 - Math.pow(1 - p, 3)) * score));
+          if (p < 1) requestAnimationFrame(step);
+        })(performance.now());
+        obs.disconnect();
+      }
+    }, { threshold: 0.3 });
+    if (el.current) obs.observe(el.current);
+    return () => obs.disconnect();
+  }, [score]);
+
   return (
-    <div style={{ background: 'rgba(6,15,9,0.95)', border: '1px solid rgba(56,189,248,0.15)', borderRadius: 10, padding: '10px 14px', backdropFilter: 'blur(8px)' }}>
-      <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.4)', marginBottom: 4, fontFamily: 'var(--font-mono)' }}>{label}</div>
-      <div style={{ fontSize: 14, fontWeight: 600, color: '#fff' }}>${payload[0]?.value?.toLocaleString()}</div>
+    <div ref={el} style={{ width: size, height: size, position: 'relative', flexShrink: 0 }}>
+      <svg width={size} height={size} style={{ transform: 'rotate(-90deg)' }}>
+        <circle cx={size / 2} cy={size / 2} r={rad} fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth={sw} />
+        <circle cx={size / 2} cy={size / 2} r={rad} fill="none" stroke="#00e68a" strokeWidth={sw}
+          strokeDasharray={circ} strokeDashoffset={off} strokeLinecap="round"
+          style={{ transition: 'stroke-dashoffset .3s ease', filter: 'drop-shadow(0 0 4px rgba(0,230,138,0.4))' }} />
+      </svg>
+      <span style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center',
+        fontFamily: 'var(--font-display)', fontSize: size * 0.32, fontWeight: 800, color: '#00e68a',
+        textShadow: '0 0 10px rgba(0,230,138,0.3)' }}>{val}</span>
     </div>
-  );
-};
-
-export default function BuyerDashboard() {
-  const matchedListings = listings.filter(l => l.status === 'ACTIVE' && l.status !== 'BLOCKED').slice(0, 4);
-  const buyerTxns = transactions.filter(t => t.buyerName === 'EcoPlast Manufacturing');
-
-  return (
-    <motion.div initial="hidden" animate="visible" variants={stagger}>
-      {/* Header */}
-      <motion.div variants={fadeUp} transition={{ duration: 0.4 }} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 28, flexWrap: 'wrap', gap: 16 }}>
-        <div>
-          <h1 style={{ fontFamily: 'var(--font-display)', fontSize: 26, fontWeight: 800, color: '#fff', marginBottom: 6, letterSpacing: '-0.02em' }}>
-            Good evening, Ananya
-          </h1>
-          <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.4)', display: 'flex', alignItems: 'center', gap: 8 }}>
-            <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#38BDF8', display: 'inline-block' }} />
-            EcoPlast Manufacturing · Buyer Dashboard
-          </p>
-        </div>
-        <Link to="/buyer/marketplace" style={{
-          display: 'inline-flex', alignItems: 'center', gap: 8, padding: '10px 22px',
-          borderRadius: 10, background: '#B8F53C', color: 'var(--color-brand-dark)',
-          fontSize: 13, fontWeight: 700, textDecoration: 'none', fontFamily: 'var(--font-body)',
-          boxShadow: '0 0 20px rgba(184,245,60,0.2)',
-        }}>
-          <Search size={14} /> Browse Marketplace
-        </Link>
-      </motion.div>
-
-      {/* KPI Row */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(195px, 1fr))', gap: 14, marginBottom: 28 }}>
-        <KPICard title="Active Requests" value={5} icon={ShoppingCart} color="blue" delay={0} />
-        <KPICard title="Sourced (MTD)" value={186} suffix=" t" icon={Package} trend={24} trendLabel="vs last mo" color="lime" delay={1} />
-        <KPICard title="Cost Savings vs Virgin" value={23} suffix="%" icon={TrendingDown} trend={5} color="lime" delay={2} />
-        <KPICard title="Scope 3 Avoided" value={142} suffix=" tCO₂e" icon={Leaf} color="blue" delay={3} />
-        <KPICard title="Pending QAR" value={2} icon={ClipboardCheck} color="amber" delay={4} />
-        <KPICard title="Completed" value={8} icon={ArrowRightLeft} trend={15} color="lime" delay={5} />
-      </div>
-
-      {/* Charts Row */}
-      <div style={{ display: 'grid', gridTemplateColumns: '3fr 2fr', gap: 16, marginBottom: 28 }} className="buyer-grid-2">
-        {/* Spend Trend */}
-        <motion.div variants={fadeUp} transition={{ duration: 0.4 }} style={{ padding: 24, borderRadius: 14, background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
-            <div>
-              <h3 style={{ fontSize: 14, fontWeight: 600, color: 'rgba(255,255,255,0.7)', marginBottom: 2 }}>Procurement Spend</h3>
-              <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.3)', fontFamily: 'var(--font-mono)' }}>Last 6 months · Total $156K</span>
-            </div>
-            <div style={{ fontSize: 20, fontWeight: 800, color: '#38BDF8', fontFamily: 'var(--font-display)' }}>$35.8K</div>
-          </div>
-          <ResponsiveContainer width="100%" height={180}>
-            <AreaChart data={spendData}>
-              <defs>
-                <linearGradient id="spendGrad" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#38BDF8" stopOpacity={0.2} />
-                  <stop offset="100%" stopColor="#38BDF8" stopOpacity={0} />
-                </linearGradient>
-              </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" />
-              <XAxis dataKey="month" tick={{ fill: 'rgba(255,255,255,0.3)', fontSize: 11 }} axisLine={false} tickLine={false} />
-              <YAxis tick={{ fill: 'rgba(255,255,255,0.3)', fontSize: 11, fontFamily: 'JetBrains Mono' }} axisLine={false} tickLine={false} tickFormatter={v => `$${(v / 1000).toFixed(0)}k`} />
-              <Tooltip content={<CustomTooltip />} />
-              <Area type="monotone" dataKey="spend" stroke="#38BDF8" strokeWidth={2.5} fill="url(#spendGrad)" dot={{ fill: '#38BDF8', r: 3, strokeWidth: 0 }} activeDot={{ fill: '#38BDF8', r: 5, stroke: '#fff', strokeWidth: 2 }} />
-            </AreaChart>
-          </ResponsiveContainer>
-        </motion.div>
-
-        {/* Category Mix Donut */}
-        <motion.div variants={fadeUp} transition={{ duration: 0.4 }} style={{ padding: 24, borderRadius: 14, background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)' }}>
-          <h3 style={{ fontSize: 14, fontWeight: 600, color: 'rgba(255,255,255,0.7)', marginBottom: 16 }}>Material Category Mix</h3>
-          <ResponsiveContainer width="100%" height={160}>
-            <PieChart>
-              <Pie data={categoryData} cx="50%" cy="50%" innerRadius={45} outerRadius={72} paddingAngle={4} dataKey="value" stroke="none">
-                {categoryData.map((entry, i) => <Cell key={i} fill={entry.color} />)}
-              </Pie>
-              <Tooltip contentStyle={{ background: 'rgba(6,15,9,0.95)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 8, fontSize: 12, color: '#fff' }} />
-            </PieChart>
-          </ResponsiveContainer>
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, justifyContent: 'center', marginTop: 8 }}>
-            {categoryData.map((c, i) => (
-              <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, color: 'rgba(255,255,255,0.5)' }}>
-                <span style={{ width: 8, height: 8, borderRadius: 2, background: c.color, flexShrink: 0 }} /> {c.name} <span style={{ fontFamily: 'var(--font-mono)', color: c.color }}>{c.value}%</span>
-              </div>
-            ))}
-          </div>
-        </motion.div>
-      </div>
-
-      {/* Match Alerts */}
-      <motion.div variants={fadeUp} transition={{ duration: 0.4 }} style={{ padding: 24, borderRadius: 14, background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)', marginBottom: 28 }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 18 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <div style={{ width: 28, height: 28, borderRadius: 7, background: 'rgba(184,245,60,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <Sparkles size={14} style={{ color: '#B8F53C' }} />
-            </div>
-            <h3 style={{ fontSize: 14, fontWeight: 600, color: 'rgba(255,255,255,0.7)' }}>AI Match Alerts</h3>
-            <span style={{ fontSize: 10, padding: '2px 8px', borderRadius: 10, background: 'rgba(184,245,60,0.1)', color: '#B8F53C', fontFamily: 'var(--font-mono)', fontWeight: 600 }}>{matchAlerts.length} new</span>
-          </div>
-          <Link to="/buyer/marketplace" style={{ fontSize: 11, color: '#B8F53C', fontWeight: 600, textDecoration: 'none' }}>Browse All →</Link>
-        </div>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: 12 }}>
-          {matchAlerts.map((alert) => (
-            <div key={alert.id} style={{
-              padding: 18, borderRadius: 12,
-              background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)',
-              transition: 'all 0.2s', cursor: 'pointer',
-            }}
-              onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(184,245,60,0.2)'; e.currentTarget.style.boxShadow = '0 0 20px rgba(184,245,60,0.08)'; }}
-              onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.06)'; e.currentTarget.style.boxShadow = ''; }}
-            >
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 10 }}>
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontSize: 14, fontWeight: 600, color: '#fff', marginBottom: 3 }}>{alert.material}</div>
-                  <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.35)' }}>{alert.seller} · {alert.location}</div>
-                </div>
-                <MQSRing score={alert.mqs} size={40} strokeWidth={3} />
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <div style={{ display: 'flex', gap: 12 }}>
-                  <span style={{ fontSize: 12, color: '#B8F53C', fontFamily: 'var(--font-mono)', fontWeight: 600 }}>{alert.price}</span>
-                  <span style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 11, color: 'rgba(255,255,255,0.35)' }}>
-                    <Target size={10} /> Fit: <span style={{ color: '#B8F53C', fontFamily: 'var(--font-mono)', fontWeight: 600 }}>{alert.fit}%</span>
-                  </span>
-                </div>
-                <button style={{ padding: '6px 14px', borderRadius: 6, background: 'rgba(184,245,60,0.08)', color: '#B8F53C', border: '1px solid rgba(184,245,60,0.15)', fontSize: 11, fontWeight: 600, cursor: 'pointer', fontFamily: 'var(--font-body)' }}>Express Interest</button>
-              </div>
-            </div>
-          ))}
-        </div>
-      </motion.div>
-
-      {/* Bottom Row: Recent Transactions + Scope 3 Quick View */}
-      <div style={{ display: 'grid', gridTemplateColumns: '3fr 2fr', gap: 16 }} className="buyer-grid-2">
-        {/* Recent Transactions */}
-        <motion.div variants={fadeUp} transition={{ duration: 0.4 }} style={{ padding: 24, borderRadius: 14, background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-            <h3 style={{ fontSize: 14, fontWeight: 600, color: 'rgba(255,255,255,0.7)' }}>Recent Transactions</h3>
-            <span className="api-tooltip">GET /transactions</span>
-          </div>
-          {buyerTxns.slice(0, 4).map((txn, i) => (
-            <div key={txn.id} style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '12px 0', borderBottom: i < 3 ? '1px solid rgba(255,255,255,0.04)' : 'none' }}>
-              <MQSRing score={txn.mqsScore} size={34} strokeWidth={3} />
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontSize: 13, fontWeight: 500, color: '#fff', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{txn.materialName}</div>
-                <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.3)', fontFamily: 'var(--font-mono)' }}>{txn.id} · {txn.sellerName}</div>
-              </div>
-              <div style={{ textAlign: 'right' }}>
-                <div style={{ fontSize: 13, fontFamily: 'var(--font-mono)', fontWeight: 600, color: '#fff' }}>{txn.agreedPrice ? `$${txn.agreedPrice}` : '—'}</div>
-                <div style={{ marginTop: 2 }}><StatusBadgeInline status={txn.status} /></div>
-              </div>
-            </div>
-          ))}
-        </motion.div>
-
-        {/* Scope 3 Quick View */}
-        <motion.div variants={fadeUp} transition={{ duration: 0.4 }} style={{ padding: 24, borderRadius: 14, background: 'rgba(56,189,248,0.03)', border: '1px solid rgba(56,189,248,0.1)' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 20 }}>
-            <Leaf size={16} style={{ color: '#38BDF8' }} />
-            <h3 style={{ fontSize: 14, fontWeight: 600, color: 'rgba(255,255,255,0.7)' }}>Scope 3 Impact</h3>
-          </div>
-          <div style={{ textAlign: 'center', marginBottom: 20 }}>
-            <div style={{ fontSize: 48, fontFamily: 'var(--font-display)', fontWeight: 800, color: '#38BDF8', letterSpacing: '-0.03em' }}>228</div>
-            <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.4)' }}>tCO₂e avoided this year</div>
-          </div>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-            <div style={{ padding: 14, borderRadius: 10, background: 'rgba(255,255,255,0.02)', textAlign: 'center' }}>
-              <div style={{ fontSize: 20, fontWeight: 700, color: '#B8F53C', fontFamily: 'var(--font-display)' }}>445</div>
-              <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.35)', marginTop: 2 }}>Tonnes Sourced</div>
-            </div>
-            <div style={{ padding: 14, borderRadius: 10, background: 'rgba(255,255,255,0.02)', textAlign: 'center' }}>
-              <div style={{ fontSize: 20, fontWeight: 700, color: '#F59E0B', fontFamily: 'var(--font-display)' }}>12</div>
-              <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.35)', marginTop: 2 }}>DPPs Generated</div>
-            </div>
-          </div>
-          <Link to="/buyer/scope3" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, marginTop: 16, fontSize: 12, color: '#38BDF8', fontWeight: 600, textDecoration: 'none' }}>
-            Full Scope 3 Report <ArrowRight size={12} />
-          </Link>
-        </motion.div>
-      </div>
-
-      <style>{`
-        @media (max-width: 1024px) { .buyer-grid-2 { grid-template-columns: 1fr !important; } }
-      `}</style>
-    </motion.div>
   );
 }
 
-function StatusBadgeInline({ status }) {
-  const colorMap = {
-    ACTIVE: '#B8F53C', BUYER_INTERESTED: '#38BDF8', PRICE_PROPOSED: '#F59E0B', AGREED: '#B8F53C',
-    LOCKED: '#B8F53C', ESCROW_LOCKED: '#B8F53C', QAR_PENDING: '#F59E0B', COMPLETED: '#B8F53C',
-    SETTLED: '#B8F53C', DISPUTED: '#EF4444', BLOCKED: '#EF4444',
-  };
-  const c = colorMap[status] || '#64748B';
+/* ═══ Animated Number ═══ */
+function Num({ target, prefix = '', suffix = '' }) {
+  const [v, setV] = useState(0);
+  const el = useRef(null), started = useRef(false);
+  useEffect(() => {
+    const obs = new IntersectionObserver(([e]) => {
+      if (e.isIntersecting && !started.current) {
+        started.current = true;
+        const t0 = performance.now();
+        (function step(now) {
+          const p = Math.min((now - t0) / 1400, 1);
+          setV(Math.floor((1 - Math.pow(1 - p, 3)) * target));
+          if (p < 1) requestAnimationFrame(step);
+        })(performance.now());
+      }
+    }, { threshold: 0.3 });
+    if (el.current) obs.observe(el.current);
+    return () => obs.disconnect();
+  }, [target]);
+  return <span ref={el}>{prefix}{v.toLocaleString()}{suffix}</span>;
+}
+
+/* ═══ Material Card Data ═══ */
+const materials = [
+  { name: 'HDPE Pellets', status: 'ACTIVE', mqs: 94, qty: '10t', floor: '$12.0k', mqsVal: '925t', price: '$18.1k' },
+  { name: 'Copper Wire Scrap', status: 'AGREED', mqs: 92, qty: '100t', floor: '$21.0k', mqsVal: '925t', price: '$17.1k' },
+];
+const bentoMats = [
+  { name: 'HDPE Pellets', status: 'ACTIVE', mqs: 94, qty: '100t', floor: '$12.0k', mqsVal: '5.23t', price: '$17.2k' },
+  { name: 'Copper Wire Scrap', status: 'AGREED', mqs: 94, qty: '100', floor: '$02.0k', mqsVal: '5.23t', price: '$50.00' },
+];
+
+/* ═══ Pipeline Data ═══ */
+const pipeline = [
+  { title: 'Listed', count: 1, items: ['Listed (1)', 'Sourced:: 186t'] },
+  { title: 'Buyer Interested', count: 1, items: ['Buyer (1)', 'Sourced ±: 186t'] },
+  { title: 'Price Proposed', count: 1, items: ['Price Proposed (1)', 'Price Proposed (1)'] },
+  { title: 'Agreed', count: 1, items: ['Agreed (1)', 'Agreed: AGREED'] },
+  { title: 'Locked', count: 1, items: ['Locked (1)', 'Sourced: 186t'] },
+];
+
+/* ═══ Small Material Card ═══ */
+function MatCard({ m, size = 64 }) {
   return (
-    <span style={{ fontSize: 9, fontFamily: 'var(--font-mono)', fontWeight: 600, color: c, background: `${c}12`, padding: '1px 6px', borderRadius: 3, textTransform: 'uppercase', letterSpacing: '0.03em' }}>
-      {status?.replace(/_/g, ' ')}
-    </span>
+    <div className="bcc-mc">
+      <Ring score={m.mqs} size={size} />
+      <div className="bcc-mc-info">
+        <div className="bcc-mc-top">
+          <span className="bcc-mc-name">{m.name}</span>
+          <span className={`bcc-badge ${m.status === 'ACTIVE' ? 'bcc-badge-active' : 'bcc-badge-agreed'}`}>{m.status}</span>
+        </div>
+        <div className="bcc-mc-grid">
+          <div><div className="bcc-mc-lbl">Qty</div><div className="bcc-mc-val">{m.qty}</div></div>
+          <div><div className="bcc-mc-lbl">Floor</div><div className="bcc-mc-val">{m.floor}</div></div>
+          <div><div className="bcc-mc-lbl">MQS</div><div className="bcc-mc-val">{m.mqsVal}</div></div>
+          <div><div className="bcc-mc-lbl">Price</div><div className="bcc-mc-val">{m.price}</div></div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ═══════════════════════════════════════
+   MAIN DASHBOARD
+   ═══════════════════════════════════════ */
+export default function BuyerDashboard() {
+  return (
+    <motion.div className="bcc" initial="hidden" animate="visible" variants={stagger}>
+
+      {/* ── Header ── */}
+      <motion.div variants={fadeUp} className="bcc-head">
+        <h1>Buyer Command Center</h1>
+        <div className="bcc-head-actions">
+          <button className="bcc-ibtn"><LayoutGrid size={17} /></button>
+          <button className="bcc-ibtn"><Users size={17} /></button>
+        </div>
+      </motion.div>
+
+      {/* ── Top Row: Env Impact + Material Cards ── */}
+      <motion.div variants={fadeUp} className="bcc-top">
+        {/* Environmental Impact */}
+        <div className="bcc-env">
+          <div className="bcc-env-title">Environmental Impact</div>
+          <Globe w={190} h={190} />
+          <div className="bcc-env-bot">
+            <h3>Global</h3>
+            <p>Sourced: <strong>186t</strong>, CO2 Avoided: <strong>142tCO2e</strong></p>
+          </div>
+        </div>
+
+        {/* Material Cards */}
+        <div className="bcc-mats-col">
+          <div className="bcc-mats-hdr">
+            <h2>Material Cards</h2>
+            <button className="bcc-filter-btn">All material <ChevronDown size={13} /></button>
+          </div>
+          <div className="bcc-mats-row">
+            {materials.map((m, i) => <MatCard key={i} m={m} size={60} />)}
+          </div>
+        </div>
+      </motion.div>
+
+      {/* ── Bento Box ── */}
+      <motion.div variants={fadeUp}>
+        <h2 className="bcc-bento-label">Bento Box</h2>
+        <div className="bcc-bento">
+          {/* Sourced MTD - tall card spanning 2 rows */}
+          <div className="bcc-bento-sourced">
+            <div className="bcc-bento-icon"><TrendingUp size={20} /></div>
+            <div>
+              <div className="bcc-bento-lbl">Sourced (MTD):</div>
+              <div className="bcc-bento-val"><Num target={186} /><span>t</span></div>
+            </div>
+          </div>
+
+          {/* Cost Savings - row 1 col 2 */}
+          <div className="bcc-bento-kpi">
+            <div className="kpi-icon"><Percent size={18} /></div>
+            <div>
+              <div className="kpi-lbl">Cost Savings:</div>
+              <div className="kpi-val">$<Num target={24000} /></div>
+            </div>
+          </div>
+
+          {/* HDPE Pellets - row 1-2 col 3 */}
+          <div className="bcc-bento-mat">
+            <Ring score={bentoMats[0].mqs} size={72} />
+            <div className="bcc-mc-info">
+              <div className="bcc-mc-top">
+                <span className="bcc-mc-name">{bentoMats[0].name}</span>
+                <span className="bcc-badge bcc-badge-active">{bentoMats[0].status}</span>
+              </div>
+              <div className="bcc-mc-grid">
+                <div><div className="bcc-mc-lbl">Qty</div><div className="bcc-mc-val">{bentoMats[0].qty}</div></div>
+                <div><div className="bcc-mc-lbl">Floor</div><div className="bcc-mc-val">{bentoMats[0].floor}</div></div>
+                <div><div className="bcc-mc-lbl">MQS</div><div className="bcc-mc-val">{bentoMats[0].mqsVal}</div></div>
+                <div><div className="bcc-mc-lbl">Price</div><div className="bcc-mc-val">{bentoMats[0].price}</div></div>
+              </div>
+            </div>
+          </div>
+
+          {/* Copper Wire Scrap - row 1-2 col 4 */}
+          <div className="bcc-bento-mat">
+            <Ring score={bentoMats[1].mqs} size={72} />
+            <div className="bcc-mc-info">
+              <div className="bcc-mc-top">
+                <span className="bcc-mc-name">{bentoMats[1].name}</span>
+                <span className="bcc-badge bcc-badge-agreed">{bentoMats[1].status}</span>
+              </div>
+              <div className="bcc-mc-grid">
+                <div><div className="bcc-mc-lbl">Qty</div><div className="bcc-mc-val">{bentoMats[1].qty}</div></div>
+                <div><div className="bcc-mc-lbl">Floor</div><div className="bcc-mc-val">{bentoMats[1].floor}</div></div>
+                <div><div className="bcc-mc-lbl">MQS</div><div className="bcc-mc-val">{bentoMats[1].mqsVal}</div></div>
+                <div><div className="bcc-mc-lbl">Price</div><div className="bcc-mc-val">{bentoMats[1].price}</div></div>
+              </div>
+            </div>
+          </div>
+
+          {/* Scope 3 Avoided - row 2 col 2 */}
+          <div className="bcc-bento-kpi">
+            <div className="kpi-icon green"><Clock size={18} /></div>
+            <div>
+              <div className="kpi-lbl">Scope 3 Avoided:</div>
+              <div className="kpi-val"><Num target={142} />tCO2e</div>
+            </div>
+          </div>
+        </div>
+      </motion.div>
+
+      {/* ── Transaction Pipeline ── */}
+      <motion.div variants={fadeUp}>
+        <h2 className="bcc-pip-label">Transaction Pipeline</h2>
+        <div className="bcc-pip">
+          <div className="bcc-pip-line" />
+          <div className="bcc-pip-track">
+            {pipeline.map((s, i) => (
+              <div key={i} className="bcc-pip-stage">
+                <div className="bcc-pip-dot" />
+                <div className="bcc-pip-card">
+                  <h4><span className="pip-sq"><Package size={8} /></span> {s.title} ({s.count})</h4>
+                  {s.items.map((item, j) => (
+                    <div key={j} className="bcc-pip-item">
+                      {typeof item === 'string' && item.includes(':')
+                        ? <>{item.split(':')[0]}: <strong>{item.split(':').slice(1).join(':').trim()}</strong></>
+                        : item
+                      }
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </motion.div>
+    </motion.div>
   );
 }

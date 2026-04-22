@@ -30,10 +30,10 @@ export default function KPICard({ title, value, suffix = '', prefix = '', icon: 
   }, [numericValue]);
 
   const colorMap = {
-    lime: { accent: '#B8F53C', bg: 'rgba(184,245,60,0.06)', glow: 'rgba(184,245,60,0.08)', border: 'rgba(184,245,60,0.12)' },
-    blue: { accent: '#38BDF8', bg: 'rgba(56,189,248,0.06)', glow: 'rgba(56,189,248,0.08)', border: 'rgba(56,189,248,0.12)' },
-    amber: { accent: '#F59E0B', bg: 'rgba(245,158,11,0.06)', glow: 'rgba(245,158,11,0.08)', border: 'rgba(245,158,11,0.12)' },
-    rose: { accent: '#FB7185', bg: 'rgba(251,113,133,0.06)', glow: 'rgba(251,113,133,0.08)', border: 'rgba(251,113,133,0.12)' },
+    lime:  { accent: '#00e68a', bg: 'rgba(0,230,138,0.06)',  glow: 'rgba(0,230,138,0.12)',  border: 'rgba(0,230,138,0.15)'  },
+    blue:  { accent: '#00d4ff', bg: 'rgba(0,212,255,0.06)',  glow: 'rgba(0,212,255,0.12)',  border: 'rgba(0,212,255,0.15)'  },
+    amber: { accent: '#F59E0B', bg: 'rgba(245,158,11,0.06)', glow: 'rgba(245,158,11,0.12)', border: 'rgba(245,158,11,0.15)' },
+    rose:  { accent: '#fb7185', bg: 'rgba(251,113,133,0.06)',glow: 'rgba(251,113,133,0.12)',border: 'rgba(251,113,133,0.15)'},
   };
   const c = colorMap[color] || colorMap.lime;
 
@@ -51,6 +51,8 @@ export default function KPICard({ title, value, suffix = '', prefix = '', icon: 
         border: `1px solid ${c.border}`,
         overflow: 'hidden',
         cursor: 'default',
+        backdropFilter: 'blur(12px)',
+        boxShadow: `inset 0 1px 0 rgba(255,255,255,0.05), 0 4px 24px rgba(0,0,0,0.2)`,
         transition: 'border-color 0.3s ease, box-shadow 0.3s ease',
       }}
       onMouseEnter={e => {
@@ -91,8 +93,8 @@ export default function KPICard({ title, value, suffix = '', prefix = '', icon: 
             <span style={{
               display: 'inline-flex', alignItems: 'center', gap: 3,
               fontSize: 11, fontWeight: 600, fontFamily: 'var(--font-mono)',
-              color: trend >= 0 ? '#B8F53C' : '#FB7185',
-              background: trend >= 0 ? 'rgba(184,245,60,0.08)' : 'rgba(251,113,133,0.08)',
+              color: trend >= 0 ? '#00e68a' : '#fb7185',
+              background: trend >= 0 ? 'rgba(0,230,138,0.08)' : 'rgba(251,113,133,0.08)',
               padding: '2px 7px', borderRadius: 4,
             }}>
               {trend >= 0 ? '↑' : '↓'} {Math.abs(trend)}%

@@ -7,8 +7,8 @@ export default function MQSRing({ score, size = 56, strokeWidth = 4, showLabel =
   const circumference = 2 * Math.PI * radius;
   const offset = circumference - (animatedScore / 100) * circumference;
 
-  const color = animatedScore >= 75 ? '#B8F53C' : animatedScore >= 50 ? '#F59E0B' : '#EF4444';
-  const bgColor = animatedScore >= 75 ? 'rgba(184,245,60,0.1)' : animatedScore >= 50 ? 'rgba(245,158,11,0.1)' : 'rgba(239,68,68,0.1)';
+  const color = animatedScore >= 75 ? '#00e68a' : animatedScore >= 50 ? '#F59E0B' : '#EF4444';
+  const bgColor = animatedScore >= 75 ? 'rgba(0,230,138,0.1)' : animatedScore >= 50 ? 'rgba(245,158,11,0.1)' : 'rgba(239,68,68,0.1)';
 
   useEffect(() => {
     const observer = new IntersectionObserver(([e]) => {
